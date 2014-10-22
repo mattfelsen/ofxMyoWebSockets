@@ -43,6 +43,8 @@ An openFrameworks addon for working with [Myo armbands from Thalmic Labs](https:
 ### Multiple Myo Armbands
 This addon supports multiple armbands. The current limitation is the Myo Connect background application, which only supports two. If Myo Connect is updated, this addon should automatically support additional armbands.
 
+You only need to create one instance of `ofxMyoWebSockets::Connection`. Each armband should be referenced by its ID assigned from Myo Connect, which can be accessed at `ofxMyoWebSockets::Armband::id`.
+
 ### Pinky-to-Thumb Unlock
 Enable this if you'd like to require this hand pose to be performed before other hand poses are recognized.
 
