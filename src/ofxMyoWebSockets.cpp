@@ -75,15 +75,18 @@ void Connection::update(){
 		if (armband->pose == "rest" || armband->poseConfirmed) continue;
 
 		if (ofGetElapsedTimef() - armband->poseStartTime > minimumGestureDuration) {
-			armband->poseConfirmed = true;
-			ofNotifyEvent(poseConfirmedEvent, armband, this);
+
+			if ((requiresUnlock && armband->unlocked) || !requiresUnlock) {
+				armband->poseConfirmed = true;
+				ofNotifyEvent(poseConfirmedEvent, *armband, this);
+			}
 
 			// unlock gesture
 			if (armband->pose == "thumb_to_pinky") {
 
 				if (!armband->unlocked) {
 					vibrate(armband, "double");
-					ofNotifyEvent(unlockedEvent, armband, this);
+					ofNotifyEvent(unlockedEvent, *armband, this);
 				}
 
 				armband->unlocked = true;
@@ -94,7 +97,6 @@ void Connection::update(){
 				// re-lock after a confirmed pose
 				if (lockAfterPose && armband->unlocked && armband->pose != "thumb_to_pinky") {
 					armband->unlocked = false;
-					vibrate(armband, "short");
 				}
 			}
 		}
@@ -108,7 +110,7 @@ void Connection::update(){
 
 		if (ofGetElapsedTimef() - armband->unlockStartTime > unlockTimeout) {
 			armband->unlocked = false;
-			ofNotifyEvent(lockedEvent, armband, this);
+			ofNotifyEvent(lockedEvent, *armband, this);
 		}
 	}
 
@@ -230,16 +232,17 @@ void Connection::onMessage( ofxLibwebsockets::Event& args ){
 		// CONNECTED
 		//
 		if (event == "connected") {
-			vibrate(armband, "short");
 			requestSignalStrength(armband);
-			ofLogNotice() << "Myo Connected: ID " << id;
+//			ofLogNotice() << "Myo Connected: ID " << id;
+			ofNotifyEvent(connectedEvent, *armband, this);
 		}
 
 		//
 		// PAIRED
 		//
 		if (event == "paired") {
-			ofLogNotice() << "Myo Paired: ID " << id;
+//			ofLogNotice() << "Myo Paired: ID " << id;
+			ofNotifyEvent(pairedEvent, *armband, this);
 		}
 
 		//
@@ -254,7 +257,8 @@ void Connection::onMessage( ofxLibwebsockets::Event& args ){
 				}
 			}
 
-			ofLogNotice() << "Myo Disconnected: ID " << id;
+//			ofLogNotice() << "Myo Disconnected: ID " << id;
+			ofNotifyEvent(disconnectedEvent, *armband, this);
 		}
 
 		//
@@ -269,7 +273,8 @@ void Connection::onMessage( ofxLibwebsockets::Event& args ){
 				}
 			}
 
-			ofLogNotice() << "Myo Unpaired: ID " << id;
+//			ofLogNotice() << "Myo Unpaired: ID " << id;
+			ofNotifyEvent(unpairedEvent, *armband, this);
 		}
 
 		//
@@ -280,7 +285,8 @@ void Connection::onMessage( ofxLibwebsockets::Event& args ){
 			armband->arm = data["arm"].asString();
 			armband->direction = data["x_direction"].asString();
 
-			ofLogNotice() << "Arm Recognized: ID " << id << ", " << armband->arm << ", " << armband->direction;
+//			ofLogNotice() << "Arm Recognized: ID " << id << ", " << armband->arm << ", " << armband->direction;
+			ofNotifyEvent(armRecognizedEvent, *armband, this);
 		}
 
 		//
@@ -291,7 +297,8 @@ void Connection::onMessage( ofxLibwebsockets::Event& args ){
 			armband->arm = "unknown";
 			armband->direction = "unknown";
 
-			ofLogNotice() << "Arm Lost: ID " << id;
+//			ofLogNotice() << "Arm Lost: ID " << id;
+			ofNotifyEvent(armLostEvent, *armband, this);
 		}
 
 		//
@@ -312,7 +319,9 @@ void Connection::onMessage( ofxLibwebsockets::Event& args ){
 			armband->pitch = asin(2.0f * (w * y - z * x));
 			armband->yaw = atan2(2.0f * (w * z + x * y), 1.0f - 2.0f * (y * y + z * z));
 
-			ofNotifyEvent(orientationEvent, armband, this);
+			int i = 5;
+
+			ofNotifyEvent(orientationEvent, *armband, this);
 		}
 
 		//
@@ -326,8 +335,8 @@ void Connection::onMessage( ofxLibwebsockets::Event& args ){
 			armband->poseConfirmed = false;
 			armband->poseStartTime = ofGetElapsedTimef();
 
-			ofLogNotice("Myo Pose: " + armband->pose);
-			ofNotifyEvent(poseStartedEvent, armband, this);
+//			ofLogNotice("Myo Pose: " + armband->pose);
+			ofNotifyEvent(poseStartedEvent, *armband, this);
 
 		}
 
@@ -336,7 +345,8 @@ void Connection::onMessage( ofxLibwebsockets::Event& args ){
 		//
 		if (data["type"].asString() == "rssi") {
 			armband->rssi = data["rssi"].asInt();
-			ofLogNotice() << "ID " << armband->id << " RSSI: " << armband->rssi;
+//			ofLogNotice() << "ID " << armband->id << " RSSI: " << armband->rssi;
+			ofNotifyEvent(rssiReceivedEvent, *armband, this);
 		}
 
 	}

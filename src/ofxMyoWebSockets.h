@@ -59,14 +59,23 @@ namespace ofxMyoWebSockets {
 		Armband*			createArmband(int myoID);
 		int					numConnectedArmbands();
 
-		bool				connected;
-		bool				reconnect;
+		ofEvent<Armband>	connectedEvent;
+		ofEvent<Armband>	pairedEvent;
 
-		ofEvent<Armband*>	unlockedEvent;
-		ofEvent<Armband*>	lockedEvent;
-		ofEvent<Armband*>	poseStartedEvent;
-		ofEvent<Armband*>	poseConfirmedEvent;
-		ofEvent<Armband*>	orientationEvent;
+		ofEvent<Armband>	disconnectedEvent;
+		ofEvent<Armband>	unpairedEvent;
+
+		ofEvent<Armband>	armRecognizedEvent;
+		ofEvent<Armband>	armLostEvent;
+
+		ofEvent<Armband>	unlockedEvent;
+		ofEvent<Armband>	lockedEvent;
+
+		ofEvent<Armband>	poseStartedEvent;
+		ofEvent<Armband>	poseConfirmedEvent;
+		
+		ofEvent<Armband>	orientationEvent;
+		ofEvent<Armband>	rssiReceivedEvent;
 
 
 		// ofxLibwebsockets callbacks & such
@@ -81,6 +90,8 @@ namespace ofxMyoWebSockets {
 
 	private:
 
+		bool				connected;
+		bool				reconnect;
 		float				reconnectTime;
 		float				reconnectLastAttempt;
 
