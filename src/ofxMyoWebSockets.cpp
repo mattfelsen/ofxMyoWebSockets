@@ -18,6 +18,8 @@ Connection::Connection(){
 	minimumGestureDuration = 0.5f;
 	lockAfterPose = true;
 
+	convertToDegrees = false;
+
 }
 
 //--------------------------------------------------------------
@@ -38,6 +40,10 @@ void Connection::setMinimumGestureDuration(float time){
 //--------------------------------------------------------------
 void Connection::setLockAfterPose(bool lock){
 	lockAfterPose = lock;
+}
+
+void Connection::setUseDegrees(bool degrees){
+	convertToDegrees = degrees;
 }
 
 //--------------------------------------------------------------
@@ -233,7 +239,6 @@ void Connection::onMessage( ofxLibwebsockets::Event& args ){
 		//
 		if (event == "connected") {
 			requestSignalStrength(armband);
-//			ofLogNotice() << "Myo Connected: ID " << id;
 			ofNotifyEvent(connectedEvent, *armband, this);
 		}
 
@@ -241,7 +246,6 @@ void Connection::onMessage( ofxLibwebsockets::Event& args ){
 		// PAIRED
 		//
 		if (event == "paired") {
-//			ofLogNotice() << "Myo Paired: ID " << id;
 			ofNotifyEvent(pairedEvent, *armband, this);
 		}
 
@@ -257,7 +261,6 @@ void Connection::onMessage( ofxLibwebsockets::Event& args ){
 				}
 			}
 
-//			ofLogNotice() << "Myo Disconnected: ID " << id;
 			ofNotifyEvent(disconnectedEvent, *armband, this);
 		}
 
@@ -273,7 +276,6 @@ void Connection::onMessage( ofxLibwebsockets::Event& args ){
 				}
 			}
 
-//			ofLogNotice() << "Myo Unpaired: ID " << id;
 			ofNotifyEvent(unpairedEvent, *armband, this);
 		}
 
@@ -285,7 +287,6 @@ void Connection::onMessage( ofxLibwebsockets::Event& args ){
 			armband->arm = data["arm"].asString();
 			armband->direction = data["x_direction"].asString();
 
-//			ofLogNotice() << "Arm Recognized: ID " << id << ", " << armband->arm << ", " << armband->direction;
 			ofNotifyEvent(armRecognizedEvent, *armband, this);
 		}
 
@@ -297,7 +298,6 @@ void Connection::onMessage( ofxLibwebsockets::Event& args ){
 			armband->arm = "unknown";
 			armband->direction = "unknown";
 
-//			ofLogNotice() << "Arm Lost: ID " << id;
 			ofNotifyEvent(armLostEvent, *armband, this);
 		}
 
@@ -319,7 +319,23 @@ void Connection::onMessage( ofxLibwebsockets::Event& args ){
 			armband->pitch = asin(2.0f * (w * y - z * x));
 			armband->yaw = atan2(2.0f * (w * z + x * y), 1.0f - 2.0f * (y * y + z * z));
 
-			int i = 5;
+			if (convertToDegrees) {
+				armband->roll = ofRadToDeg(armband->roll);
+				armband->pitch = ofRadToDeg(armband->pitch);
+				armband->yaw = ofRadToDeg(armband->yaw);
+			}
+
+			// flip pitch so that...
+			// - up is positive
+			// - down is negative
+			if (armband->direction == "toward_wrist")
+				armband->pitch *= -1;
+
+			// flip roll so that...
+			// - rolling right is positive roll
+			// - rolling left is negative
+			if (armband->direction == "toward_elbow")
+				armband->roll *= -1;
 
 			ofNotifyEvent(orientationEvent, *armband, this);
 		}
@@ -335,7 +351,6 @@ void Connection::onMessage( ofxLibwebsockets::Event& args ){
 			armband->poseConfirmed = false;
 			armband->poseStartTime = ofGetElapsedTimef();
 
-//			ofLogNotice("Myo Pose: " + armband->pose);
 			ofNotifyEvent(poseStartedEvent, *armband, this);
 
 		}
@@ -345,7 +360,6 @@ void Connection::onMessage( ofxLibwebsockets::Event& args ){
 		//
 		if (data["type"].asString() == "rssi") {
 			armband->rssi = data["rssi"].asInt();
-//			ofLogNotice() << "ID " << armband->id << " RSSI: " << armband->rssi;
 			ofNotifyEvent(rssiReceivedEvent, *armband, this);
 		}
 
