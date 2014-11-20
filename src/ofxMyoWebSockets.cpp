@@ -103,6 +103,7 @@ void Connection::update(){
 				// re-lock after a confirmed pose
 				if (lockAfterPose && armband->unlocked && armband->pose != "thumb_to_pinky") {
 					armband->unlocked = false;
+					ofNotifyEvent(lockedEvent, *armband, this);
 				}
 			}
 		}
