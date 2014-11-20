@@ -52,7 +52,7 @@ void Connection::connect(bool autoReconnect){
 	ofxLibwebsockets::ClientOptions options = ofxLibwebsockets::defaultClientOptions();
 	options.host = "localhost";
 	options.port = 10138;
-	options.channel = "/myo/1";
+	options.channel = "/myo/2";
 
 	connected = false;
 	reconnect = autoReconnect;
@@ -112,11 +112,17 @@ void Connection::update(){
 	for (int i = 0; i < armbands.size(); i++) {
 
 		Armband* armband = armbands[i];
-		if (!armband->unlocked) continue;
 
-		if (ofGetElapsedTimef() - armband->unlockStartTime > unlockTimeout) {
-			armband->unlocked = false;
-			ofNotifyEvent(lockedEvent, *armband, this);
+		if (!requiresUnlock)
+			armband->unlocked = true;
+
+		else {
+			if (!armband->unlocked) continue;
+
+			if (ofGetElapsedTimef() - armband->unlockStartTime > unlockTimeout) {
+				armband->unlocked = false;
+				ofNotifyEvent(lockedEvent, *armband, this);
+			}
 		}
 	}
 
@@ -282,7 +288,7 @@ void Connection::onMessage( ofxLibwebsockets::Event& args ){
 		//
 		// ARM RECOGNIZED
 		//
-		if (event == "arm_recognized") {
+		if (event == "arm_recognized" || event == "arm_synced") {
 
 			armband->arm = data["arm"].asString();
 			armband->direction = data["x_direction"].asString();
@@ -293,7 +299,7 @@ void Connection::onMessage( ofxLibwebsockets::Event& args ){
 		//
 		// ARM LOST
 		//
-		if (event == "arm_lost") {
+		if (event == "arm_lost" || event == "arm_unsynced") {
 
 			armband->arm = "unknown";
 			armband->direction = "unknown";

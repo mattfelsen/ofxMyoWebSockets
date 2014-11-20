@@ -44,6 +44,8 @@ namespace ofxMyoWebSockets {
 		void setLockAfterPose(bool lock = true);
 		void setUseDegrees(bool degrees = true);
 
+		float getMinimumGestureDuration() { return minimumGestureDuration; }
+
 		void connect(bool autoReconnect = false);
 		void update();
 
