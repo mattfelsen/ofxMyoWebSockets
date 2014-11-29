@@ -64,14 +64,19 @@ namespace ofxMyoWebSockets {
 		Armband*			createArmband(int myoID);
 		int					numConnectedArmbands();
 
-		ofEvent<Armband>	connectedEvent;
 		ofEvent<Armband>	pairedEvent;
-
-		ofEvent<Armband>	disconnectedEvent;
 		ofEvent<Armband>	unpairedEvent;
 
+		ofEvent<Armband>	connectedEvent;
+		ofEvent<Armband>	disconnectedEvent;
+
+		// API v1 compatibility
 		ofEvent<Armband>	armRecognizedEvent;
 		ofEvent<Armband>	armLostEvent;
+
+		// API v2
+		ofEvent<Armband>	armSyncedEvent;
+		ofEvent<Armband>	armUnsyncedEvent;
 
 		ofEvent<Armband>	unlockedEvent;
 		ofEvent<Armband>	lockedEvent;

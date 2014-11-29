@@ -242,33 +242,10 @@ void Connection::onMessage( ofxLibwebsockets::Event& args ){
 		if (!armband) armband = createArmband(id);
 
 		//
-		// CONNECTED
-		//
-		if (event == "connected") {
-			requestSignalStrength(armband);
-			ofNotifyEvent(connectedEvent, *armband, this);
-		}
-
-		//
 		// PAIRED
 		//
 		if (event == "paired") {
 			ofNotifyEvent(pairedEvent, *armband, this);
-		}
-
-		//
-		// DISCONNECTED
-		//
-		if (event == "disconnected") {
-
-			for (int i = 0; i < armbands.size(); i++) {
-				if (armbands[i]->id == id) {
-					armbands.erase(armbands.begin() + i);
-					break;
-				}
-			}
-
-			ofNotifyEvent(disconnectedEvent, *armband, this);
 		}
 
 		//
@@ -284,6 +261,29 @@ void Connection::onMessage( ofxLibwebsockets::Event& args ){
 			}
 
 			ofNotifyEvent(unpairedEvent, *armband, this);
+		}
+
+		//
+		// CONNECTED
+		//
+		if (event == "connected") {
+			requestSignalStrength(armband);
+			ofNotifyEvent(connectedEvent, *armband, this);
+		}
+
+		//
+		// DISCONNECTED
+		//
+		if (event == "disconnected") {
+
+			for (int i = 0; i < armbands.size(); i++) {
+				if (armbands[i]->id == id) {
+					armbands.erase(armbands.begin() + i);
+					break;
+				}
+			}
+
+			ofNotifyEvent(disconnectedEvent, *armband, this);
 		}
 
 		//
@@ -306,6 +306,28 @@ void Connection::onMessage( ofxLibwebsockets::Event& args ){
 			armband->direction = "unknown";
 
 			ofNotifyEvent(armLostEvent, *armband, this);
+		}
+
+		//
+		// ARM SYNCED
+		//
+		if (event == "arm_synced") {
+
+			armband->arm = data["arm"].asString();
+			armband->direction = data["x_direction"].asString();
+
+			ofNotifyEvent(armSyncedEvent, *armband, this);
+		}
+
+		//
+		// ARM UNSYNCED
+		//
+		if (event == "arm_unsynced") {
+
+			armband->arm = "unknown";
+			armband->direction = "unknown";
+
+			ofNotifyEvent(armUnsyncedEvent, *armband, this);
 		}
 
 		//
