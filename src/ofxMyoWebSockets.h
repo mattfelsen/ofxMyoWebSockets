@@ -21,8 +21,10 @@ namespace ofxMyoWebSockets {
 		string			direction;
 		string			pose, lastPose;
 
+		ofVec3f			accel, gyro;
 		ofQuaternion	quat;
 		float			roll, pitch, yaw;
+
 
 		float			poseStartTime;
 		bool			poseConfirmed;

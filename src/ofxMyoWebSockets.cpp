@@ -313,6 +313,21 @@ void Connection::onMessage( ofxLibwebsockets::Event& args ){
 		//
 		if (event == "orientation") {
 
+			// store accelerometer data
+			ofxJSONElement accelerometer = data["accelerometer"];
+
+			armband->accel.x = accelerometer[0].asFloat();
+			armband->accel.y = accelerometer[1].asFloat();
+			armband->accel.z = accelerometer[2].asFloat();
+
+			// store gyroscope data
+			ofxJSONElement gyroscope = data["gyroscope"];
+
+			armband->gyro.x = gyroscope[0].asFloat();
+			armband->gyro.y = gyroscope[1].asFloat();
+			armband->gyro.z = gyroscope[2].asFloat();
+
+			// store quaternion data
 			ofxJSONElement quat = data["orientation"];
 
 			float x = quat["x"].asFloat();
@@ -322,10 +337,12 @@ void Connection::onMessage( ofxLibwebsockets::Event& args ){
 
 			armband->quat.set(x, y, z, w);
 
+			// calculate roll, pitch, and yaw value
 			armband->roll = atan2(2.0f * (w * x + y * z), 1.0f - 2.0f * (x * x + y * y));
 			armband->pitch = asin(2.0f * (w * y - z * x));
 			armband->yaw = atan2(2.0f * (w * z + x * y), 1.0f - 2.0f * (y * y + z * z));
 
+			// convert to degrees if the setting is on
 			if (convertToDegrees) {
 				armband->roll = ofRadToDeg(armband->roll);
 				armband->pitch = ofRadToDeg(armband->pitch);
