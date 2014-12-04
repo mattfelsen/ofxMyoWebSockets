@@ -52,7 +52,7 @@ void Connection::connect(bool autoReconnect){
 	ofxLibwebsockets::ClientOptions options = ofxLibwebsockets::defaultClientOptions();
 	options.host = "localhost";
 	options.port = 10138;
-	options.channel = "/myo/2";
+	options.channel = "/myo/3";
 
 	connected = false;
 	reconnect = autoReconnect;
@@ -78,8 +78,9 @@ void Connection::update(){
 	for (int i = 0; i < armbands.size(); i++) {
 
 		Armband* armband = armbands[i];
-		if (armband->pose == "rest" || armband->poseConfirmed) continue;
+		if (armband->poseConfirmed) continue;
 
+        // Compare against the minimum hold time for hand poses
 		if (ofGetElapsedTimef() - armband->poseStartTime > minimumGestureDuration) {
 
 			if ((requiresUnlock && armband->unlocked) || !requiresUnlock) {
@@ -107,6 +108,16 @@ void Connection::update(){
 				}
 			}
 		}
+
+        // The exception is the rest pose. This gets confirmed immediately.
+        // I.e. hold a fist for half a second to get it confirmed, but immediately
+        // go back to rest when you're done
+        if (armband->pose == "rest") {
+            if ((requiresUnlock && armband->unlocked) || !requiresUnlock) {
+                armband->poseConfirmed = true;
+                ofNotifyEvent(poseConfirmedEvent, *armband, this);
+            }
+        }
 	}
 
 	// Check if the bands need to be re-locked since they were last unlocked
