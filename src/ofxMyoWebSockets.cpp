@@ -172,7 +172,8 @@ Armband* Connection::getArmband(int myoID){
         }
     }
 
-    return NULL;
+	return createArmband(myoID);
+//    return NULL;
 
 }
 
