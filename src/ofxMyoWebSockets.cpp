@@ -23,6 +23,25 @@ Connection::Connection(){
 }
 
 //--------------------------------------------------------------
+void Connection::setLockingPolicy(string type){
+
+	// build the json message
+	ofxJSONElement message;
+	message[0] = "command";
+
+	ofxJSONElement command;
+	command["command"] = "set_locking_policy";
+	command["type"] = type;
+
+	message[1] = command;
+
+	// send it off
+	client.send(message.getRawString());
+	cout << message.getRawString() << endl;
+	
+}
+
+//--------------------------------------------------------------
 void Connection::setRequiresUnlock(bool require){
     requiresUnlock = require;
 }
@@ -51,8 +70,8 @@ void Connection::connect(bool autoReconnect){
 
     ofxLibwebsockets::ClientOptions options = ofxLibwebsockets::defaultClientOptions();
     options.host = "localhost";
-    options.port = 10138;
-    options.channel = "/myo/3";
+    options.port = 9000;
+//    options.channel = "/myo/2";
 
     connected = false;
     reconnect = autoReconnect;
@@ -89,7 +108,7 @@ void Connection::update(){
             }
 
             // unlock gesture
-            if (armband->pose == "thumb_to_pinky") {
+            if (armband->pose == "thumb_to_pinky" || armband->pose == "double_tap") {
 
                 if (!armband->unlocked) {
                     vibrate(armband, "double");
@@ -102,8 +121,10 @@ void Connection::update(){
             } else {
 
                 // re-lock after a confirmed pose
-                if (lockAfterPose && armband->unlocked && armband->pose != "thumb_to_pinky") {
+                if (lockAfterPose && armband->unlocked && armband->pose != "thumb_to_pinky" && armband->pose != "double_tap") {
                     armband->unlocked = false;
+                    armband->pose = "rest";
+                    armband->poseConfirmed = false;
                     ofNotifyEvent(lockedEvent, *armband, this);
                 }
             }
@@ -133,6 +154,8 @@ void Connection::update(){
 
             if (ofGetElapsedTimef() - armband->unlockStartTime > unlockTimeout) {
                 armband->unlocked = false;
+                armband->pose = "rest";
+                armband->poseConfirmed = false;
                 ofNotifyEvent(lockedEvent, *armband, this);
             }
         }
@@ -236,6 +259,51 @@ void Connection::requestSignalStrength(int myoID){
 //--------------------------------------------------------------
 void Connection::requestSignalStrength(Armband* armband	){
     requestSignalStrength(armband->id);
+}
+
+//--------------------------------------------------------------
+void Connection::lock(int myoID){
+
+	// build the json message
+	ofxJSONElement message;
+	message[0] = "command";
+
+	ofxJSONElement command;
+	command["myo"] = myoID;
+	command["command"] = "lock";
+	message[1] = command;
+
+	// send it off
+	client.send(message.getRawString());
+
+}
+
+//--------------------------------------------------------------
+void Connection::lock(Armband* armband){
+	lock(armband->id);
+}
+
+//--------------------------------------------------------------
+void Connection::unlock(int myoID, string type){
+
+	// build the json message
+	ofxJSONElement message;
+	message[0] = "command";
+
+	ofxJSONElement command;
+	command["myo"] = myoID;
+	command["command"] = "unlock";
+	command["type"] = type;
+	message[1] = command;
+
+	// send it off
+	client.send(message.getRawString());
+
+}
+
+//--------------------------------------------------------------
+void Connection::unlock(Armband* armband, string type){
+	unlock(armband->id, type);
 }
 
 //--------------------------------------------------------------
@@ -396,7 +464,29 @@ void Connection::onMessage( ofxLibwebsockets::Event& args ){
             
             ofNotifyEvent(orientationEvent, *armband, this);
         }
-        
+
+        //
+        // UNLOCK
+        //
+        if (event == "unlocked") {
+
+            armband->unlocked = true;
+            armband->unlockStartTime = ofGetElapsedTimef();
+            ofNotifyEvent(unlockedEvent, *armband, this);
+
+        }
+
+        //
+        // LOCK
+        //
+        if (event == "locked") {
+
+            armband->unlocked = false;
+            armband->pose = "rest";
+            ofNotifyEvent(lockedEvent, *armband, this);
+
+        }
+
         //
         // POSE
         //

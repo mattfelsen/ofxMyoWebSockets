@@ -40,6 +40,7 @@ namespace ofxMyoWebSockets {
 
         Connection();
 
+		void setLockingPolicy(string type);
         void setRequiresUnlock(bool require = false);
         void setUnlockTimeout(float time = 3.0f);
         void setMinimumGestureDuration(float time = 0.0f);
@@ -58,6 +59,12 @@ namespace ofxMyoWebSockets {
 
         void requestSignalStrength(int myoID);
         void requestSignalStrength(Armband* armband);
+
+		void lock(int myoID);
+		void lock(Armband* armband);
+
+		void unlock(int myoID, string type);
+		void unlock(Armband* armband, string type);
 
         vector<Armband*>    armbands;
         Armband*            getArmband(int myoID);
