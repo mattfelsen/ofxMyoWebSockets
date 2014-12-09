@@ -41,21 +41,7 @@ void Connection::connect(bool autoReconnect){
 
 //--------------------------------------------------------------
 void Connection::setLockingPolicy(string type){
-
-	// build the json message
-	ofxJSONElement message;
-	message[0] = "command";
-
-	ofxJSONElement command;
-	command["command"] = "set_locking_policy";
-	command["type"] = type;
-
-	message[1] = command;
-
-	// send it off
-	client.send(message.getRawString());
-	cout << message.getRawString() << endl;
-	
+    sendCommand("set_locking_policy", type);
 }
 
 //--------------------------------------------------------------
@@ -212,99 +198,84 @@ int Connection::numConnectedArmbands(){
 }
 
 //--------------------------------------------------------------
-void Connection::vibrate(int myoID, string type){
+void Connection::sendCommand(string command, string type){
+    sendCommand(-1, command, type);
+}
 
-    string vibrationString = type;
-    if (type == "double") vibrationString = "short";
+//--------------------------------------------------------------
+void Connection::sendCommand(int myoID, string command){
+    sendCommand(myoID, command, "");
+}
+
+//--------------------------------------------------------------
+void Connection::sendCommand(int myoID, string commandString, string type){
 
     // build the json message
     ofxJSONElement message;
     message[0] = "command";
 
     ofxJSONElement command;
-    command["myo"] = myoID;
-    command["command"] = "vibrate";
-    command["type"] = vibrationString;
+    command["command"] = commandString;
+    command["type"] = type;
+
+    if (myoID != -1)
+        command["myo"] = myoID;
+
     message[1] = command;
 
     // send it off
     client.send(message.getRawString());
 
-    // if it's a double, just send it again! no need for timers :)
-    if (type == "double")
-        client.send(message.getRawString());
+}
+
+//--------------------------------------------------------------
+void Connection::sendCommand(Armband* armband, string command){
+    sendCommand(armband, command, "");
+}
+
+//--------------------------------------------------------------
+void Connection::sendCommand(Armband* armband, string command, string type){
+    sendCommand(armband->id, command, type);
+}
+
+//--------------------------------------------------------------
+void Connection::vibrate(int myoID, string type){
+    sendCommand(myoID, "vibrate", type);
 }
 
 //--------------------------------------------------------------
 void Connection::vibrate(Armband* armband, string type){
-    vibrate(armband->id, type);
+    sendCommand(armband->id, "vibrate", type);
 }
 
 //--------------------------------------------------------------
 void Connection::requestSignalStrength(int myoID){
-
-    // build the json message
-    ofxJSONElement message;
-    message[0] = "command";
-
-    ofxJSONElement command;
-    command["myo"] = myoID;
-    command["command"] = "request_rssi";
-    message[1] = command;
-
-    // send it off
-    client.send(message.getRawString());
-
+    sendCommand(myoID, "request_rssi");
 }
 
 //--------------------------------------------------------------
 void Connection::requestSignalStrength(Armband* armband	){
-    requestSignalStrength(armband->id);
+    sendCommand(armband->id, "request_rssi");
 }
 
 //--------------------------------------------------------------
 void Connection::lock(int myoID){
-
-	// build the json message
-	ofxJSONElement message;
-	message[0] = "command";
-
-	ofxJSONElement command;
-	command["myo"] = myoID;
-	command["command"] = "lock";
-	message[1] = command;
-
-	// send it off
-	client.send(message.getRawString());
-
+    sendCommand(myoID, "lock");
 }
 
 //--------------------------------------------------------------
 void Connection::lock(Armband* armband){
-	lock(armband->id);
+	sendCommand(armband->id, "lock");
 }
 
 //--------------------------------------------------------------
 void Connection::unlock(int myoID, string type){
-
-	// build the json message
-	ofxJSONElement message;
-	message[0] = "command";
-
-	ofxJSONElement command;
-	command["myo"] = myoID;
-	command["command"] = "unlock";
-	command["type"] = type;
-	message[1] = command;
-
-	// send it off
-	client.send(message.getRawString());
-
+    sendCommand(myoID, "lock", type);
 }
 
 //--------------------------------------------------------------
 void Connection::unlock(Armband* armband, string type){
-	unlock(armband->id, type);
+	sendCommand(armband->id, "unlock", type);
 }
 
 //--------------------------------------------------------------

@@ -52,6 +52,12 @@ namespace ofxMyoWebSockets {
 
         void update();
 
+        void sendCommand(string command, string parameter);
+        void sendCommand(int myoID, string command);
+        void sendCommand(int myoID, string command, string type);
+        void sendCommand(Armband* armband, string command);
+        void sendCommand(Armband* armband, string command, string type);
+
         // type: short, medium, or long as per the Myo WebSocket API
         // also added double for convenience which sends two shorts
         void vibrate(int myoID, string type);
