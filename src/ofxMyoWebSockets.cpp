@@ -15,11 +15,28 @@ Connection::Connection(){
     requiresUnlock = false;
     unlockTimeout = 3.0f;
 
-    minimumGestureDuration = 0.5f;
+    minimumGestureDuration = 0.33f;
     lockAfterPose = true;
 
     convertToDegrees = false;
 
+}
+
+//--------------------------------------------------------------
+void Connection::connect(bool autoReconnect){
+
+    ofxLibwebsockets::ClientOptions options = ofxLibwebsockets::defaultClientOptions();
+    options.host = "localhost";
+    options.port = 10138;
+    options.channel = "/myo/3";
+
+    connected = false;
+    reconnect = autoReconnect;
+    reconnectTime = 3.0f;
+
+    client.connect(options);
+    client.addListener(this);
+    
 }
 
 //--------------------------------------------------------------
@@ -63,23 +80,6 @@ void Connection::setLockAfterPose(bool lock){
 
 void Connection::setUseDegrees(bool degrees){
     convertToDegrees = degrees;
-}
-
-//--------------------------------------------------------------
-void Connection::connect(bool autoReconnect){
-
-    ofxLibwebsockets::ClientOptions options = ofxLibwebsockets::defaultClientOptions();
-    options.host = "localhost";
-    options.port = 9000;
-//    options.channel = "/myo/2";
-
-    connected = false;
-    reconnect = autoReconnect;
-    reconnectTime = 3.0f;
-
-    client.connect(options);
-    client.addListener(this);
-
 }
 
 //--------------------------------------------------------------
@@ -172,8 +172,8 @@ Armband* Connection::getArmband(int myoID){
         }
     }
 
+    // If no armband is found, create and return an empty one
 	return createArmband(myoID);
-//    return NULL;
 
 }
 

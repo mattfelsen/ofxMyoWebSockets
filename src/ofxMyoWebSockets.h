@@ -39,6 +39,7 @@ namespace ofxMyoWebSockets {
     public:
 
         Connection();
+        void connect(bool autoReconnect = false);
 
 		void setLockingPolicy(string type);
         void setRequiresUnlock(bool require = false);
@@ -49,7 +50,6 @@ namespace ofxMyoWebSockets {
 
         float getMinimumGestureDuration() { return minimumGestureDuration; }
 
-        void connect(bool autoReconnect = false);
         void update();
 
         // type: short, medium, or long as per the Myo WebSocket API
