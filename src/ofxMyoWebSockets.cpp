@@ -93,26 +93,10 @@ void Connection::update(){
                 ofNotifyEvent(poseConfirmedEvent, *armband, this);
             }
 
-            // unlock gesture
-            if (armband->pose == "thumb_to_pinky" || armband->pose == "double_tap") {
-
-                if (!armband->unlocked) {
-                    vibrate(armband, "double");
-                    ofNotifyEvent(unlockedEvent, *armband, this);
-                }
-
-                armband->unlocked = true;
-                armband->unlockStartTime = ofGetElapsedTimef();
-
-            } else {
-
-                // re-lock after a confirmed pose
-                if (lockAfterPose && armband->unlocked && armband->pose != "thumb_to_pinky" && armband->pose != "double_tap") {
-                    armband->unlocked = false;
-                    armband->pose = "rest";
-                    armband->poseConfirmed = false;
-                    ofNotifyEvent(lockedEvent, *armband, this);
-                }
+            // re-lock after a confirmed pose
+            if (lockAfterPose && armband->unlocked && armband->pose != "thumb_to_pinky" && armband->pose != "double_tap") {
+                lock(armband);
+                ofNotifyEvent(lockedEvent, *armband, this);
             }
         }
 
@@ -139,9 +123,7 @@ void Connection::update(){
             if (!armband->unlocked) continue;
 
             if (ofGetElapsedTimef() - armband->unlockStartTime > unlockTimeout) {
-                armband->unlocked = false;
-                armband->pose = "rest";
-                armband->poseConfirmed = false;
+                lock(armband);
                 ofNotifyEvent(lockedEvent, *armband, this);
             }
         }
@@ -210,6 +192,8 @@ void Connection::sendCommand(int myoID, string command){
 //--------------------------------------------------------------
 void Connection::sendCommand(int myoID, string commandString, string type){
 
+    ofLogNotice() << myoID << ", " << commandString << ", " << type;
+
     // build the json message
     ofxJSONElement message;
     message[0] = "command";
@@ -270,7 +254,7 @@ void Connection::lock(Armband* armband){
 
 //--------------------------------------------------------------
 void Connection::unlock(int myoID, string type){
-    sendCommand(myoID, "lock", type);
+    sendCommand(myoID, "unlock", type);
 }
 
 //--------------------------------------------------------------
@@ -318,7 +302,11 @@ void Connection::onMessage( ofxLibwebsockets::Event& args ){
         // CONNECTED
         //
         if (event == "connected") {
+            ofLogNotice("connected event");
             requestSignalStrength(armband);
+            setLockingPolicy("none");
+            sendCommand(armband, "notify_user_action", "single");
+
             ofNotifyEvent(connectedEvent, *armband, this);
         }
 
@@ -455,6 +443,7 @@ void Connection::onMessage( ofxLibwebsockets::Event& args ){
 
             armband->unlocked = false;
             armband->pose = "rest";
+            armband->poseConfirmed = false;
             ofNotifyEvent(lockedEvent, *armband, this);
 
         }
@@ -469,7 +458,22 @@ void Connection::onMessage( ofxLibwebsockets::Event& args ){
             armband->pose = data["pose"].asString();
             armband->poseConfirmed = false;
             armband->poseStartTime = ofGetElapsedTimef();
-            
+
+            if (armband->pose == "thumb_to_pinky" || armband->pose == "double_tap") {
+
+                // Armband is already unlocked, but send some vibrations
+                // to mimick the built-in unlock vibration
+                if (armband->unlocked) {
+                    vibrate(armband, "short");
+                    sendCommand(armband, "notify_user_action", "single");
+                }
+
+                unlock(armband, "hold");
+                ofNotifyEvent(unlockedEvent, *armband, this);
+
+            }
+
+            ofLogNotice("Pose: " + armband->pose);
             ofNotifyEvent(poseStartedEvent, *armband, this);
             
         }
