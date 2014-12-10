@@ -461,13 +461,16 @@ void Connection::onMessage( ofxLibwebsockets::Event& args ){
 
             if (armband->pose == "thumb_to_pinky" || armband->pose == "double_tap") {
 
-                // Armband is already unlocked, but send some vibrations
-                // to mimick the built-in unlock vibration
+                // Armband is already unlocked so it won't vibrate,
+                // so let's send some vibrations to mimick the built-in
+                // unlock vibration to give the user feedback
                 if (armband->unlocked) {
                     vibrate(armband, "short");
                     sendCommand(armband, "notify_user_action", "single");
                 }
 
+                // And finally send an unlock command so that the response
+                // triggers the unlocked state and resets the unlockedStartTime
                 unlock(armband, "hold");
                 ofNotifyEvent(unlockedEvent, *armband, this);
 
