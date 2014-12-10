@@ -39,7 +39,7 @@ namespace ofxMyoWebSockets {
     public:
 
         Connection();
-        void connect(bool autoReconnect = false);
+        void connect(bool autoReconnect = false, string hostname = "localhost", int port = 10138, string resource = "/myo/3");
 
 		void setLockingPolicy(string type);
         void setRequiresUnlock(bool require = false);
