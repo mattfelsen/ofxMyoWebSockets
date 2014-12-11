@@ -23,16 +23,19 @@ Connection::Connection(){
 }
 
 //--------------------------------------------------------------
-void Connection::connect(bool autoReconnect, string hostname, int port, string resource){
-
-    ofxLibwebsockets::ClientOptions options = ofxLibwebsockets::defaultClientOptions();
-    options.host = hostname;
-    options.port = port;
-    options.channel = resource;
+void Connection::connect(string hostname, int port, bool autoReconnect){
 
     connected = false;
     reconnect = autoReconnect;
     reconnectTime = 3.0f;
+
+    this->hostname = hostname;
+    this->port = port;
+
+    ofxLibwebsockets::ClientOptions options = ofxLibwebsockets::defaultClientOptions();
+    options.host = hostname;
+    options.port = port;
+    options.channel = "/myo/3";
 
     client.connect(options);
     client.addListener(this);
@@ -74,7 +77,7 @@ void Connection::update(){
     // Check if we need to reconnect
     if (!connected && reconnect) {
         if (ofGetElapsedTimef() - reconnectLastAttempt > reconnectTime) {
-            connect(reconnect);
+            connect(hostname, port, reconnect);
             reconnectLastAttempt = ofGetElapsedTimef();
         }
     }
