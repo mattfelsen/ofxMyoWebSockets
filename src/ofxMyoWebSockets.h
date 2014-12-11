@@ -60,8 +60,12 @@ namespace ofxMyoWebSockets {
 
         // type: short, medium, or long as per the Myo WebSocket API
         // also added double for convenience which sends two shorts
-        void vibrate(int myoID, string type);
-        void vibrate(Armband* armband, string type);
+        void vibrate(int myoID, string type = "short");
+        void vibrate(Armband* armband, string type = "short");
+
+        // type: only single is available, as per the Myo WebSocket API
+        void notifyUserAction(int myoID, string type = "single");
+        void notifyUserAction(Armband* armband, string type = "single");
 
         void requestSignalStrength(int myoID);
         void requestSignalStrength(Armband* armband);

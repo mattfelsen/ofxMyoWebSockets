@@ -127,6 +127,7 @@ void Connection::update(){
 
             if (ofGetElapsedTimef() - armband->unlockStartTime > unlockTimeout) {
                 lock(armband);
+                armband->unlocked = false;
                 ofNotifyEvent(lockedEvent, *armband, this);
             }
         }
@@ -233,6 +234,16 @@ void Connection::vibrate(int myoID, string type){
 //--------------------------------------------------------------
 void Connection::vibrate(Armband* armband, string type){
     sendCommand(armband->id, "vibrate", type);
+}
+
+//--------------------------------------------------------------
+void Connection::notifyUserAction(int myoID, string type){
+    sendCommand(myoID, "notify_user_action", type);
+}
+
+//--------------------------------------------------------------
+void Connection::notifyUserAction(Armband* armband, string type){
+    sendCommand(armband->id, "notify_user_action", type);
 }
 
 //--------------------------------------------------------------
