@@ -284,17 +284,17 @@ void Connection::lock(int myoID){
 
 //--------------------------------------------------------------
 void Connection::lock(Armband* armband){
-	sendCommand(armband->id, "lock");
+    sendCommand(armband->id, "lock");
 }
 
 //--------------------------------------------------------------
 void Connection::unlock(int myoID, string type){
-    sendCommand(myoID, "lock", type);
+    sendCommand(myoID, "unlock", type);
 }
 
 //--------------------------------------------------------------
 void Connection::unlock(Armband* armband, string type){
-	sendCommand(armband->id, "unlock", type);
+    sendCommand(armband->id, "unlock", type);
 }
 
 //--------------------------------------------------------------
