@@ -23,12 +23,20 @@ Connection::Connection(){
 }
 
 //--------------------------------------------------------------
-void Connection::connect(bool autoReconnect, string hostname, int port, string resource){
+void Connection::connect(bool autoReconnect){
+    connect(hostname, port, autoReconnect);
+}
+
+//--------------------------------------------------------------
+void Connection::connect(string hostname, int port, bool autoReconnect){
+
+    this->hostname = hostname;
+    this->port = port;
 
     ofxLibwebsockets::ClientOptions options = ofxLibwebsockets::defaultClientOptions();
     options.host = hostname;
     options.port = port;
-    options.channel = resource;
+    options.channel = "/myo/3";
 
     connected = false;
     reconnect = autoReconnect;

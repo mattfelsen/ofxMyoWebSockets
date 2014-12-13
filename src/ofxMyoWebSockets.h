@@ -39,7 +39,8 @@ namespace ofxMyoWebSockets {
     public:
 
         Connection();
-        void connect(bool autoReconnect = false, string hostname = "localhost", int port = 10138, string resource = "/myo/3");
+        void connect(bool autoReconnect = false);
+        void connect(string hostname = "localhost", int port = 10138, bool autoReconnect = false);
 
 		void setLockingPolicy(string type);
         void setRequiresUnlock(bool require = false);
@@ -117,6 +118,9 @@ namespace ofxMyoWebSockets {
         bool    reconnect;
         float   reconnectTime;
         float   reconnectLastAttempt;
+
+        string  hostname;
+        int     port;
         
         bool    requiresUnlock;
         float   unlockTimeout;
