@@ -483,15 +483,27 @@ void Connection::onMessage( ofxLibwebsockets::Event& args ){
         // POSE
         //
         if (event == "pose") {
-            
+
             armband->lastPose = armband->pose;
             
             armband->pose = data["pose"].asString();
             armband->poseConfirmed = false;
             armband->poseStartTime = ofGetElapsedTimef();
-            
+
             ofNotifyEvent(poseStartedEvent, *armband, this);
-            
+
+            if (armband->pose == "double_tap") {
+
+                vibrate(armband, "short");
+                notifyUserAction(armband, "single");
+
+                armband->unlocked = true;
+                armband->unlockStartTime = ofGetElapsedTimef();
+
+                ofNotifyEvent(unlockedEvent, *armband, this);
+
+            }
+
         }
         
         //
