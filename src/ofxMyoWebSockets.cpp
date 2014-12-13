@@ -105,7 +105,8 @@ void Connection::update(){
             if (armband->pose == "thumb_to_pinky" || armband->pose == "double_tap") {
 
                 if (!armband->unlocked) {
-                    vibrate(armband, "double");
+                    vibrate(armband, "short");
+                    notifyUserAction(armband, "single");
                     ofNotifyEvent(unlockedEvent, *armband, this);
                 }
 
