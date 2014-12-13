@@ -247,6 +247,16 @@ void Connection::sendCommand(Armband* armband, string command, string type){
 }
 
 //--------------------------------------------------------------
+void Connection::notifyUserAction(int myoID, string type){
+    sendCommand(myoID, "notify_user_action", type);
+}
+
+//--------------------------------------------------------------
+void Connection::notifyUserAction(Armband* armband, string type){
+    sendCommand(armband->id, "notify_user_action", type);
+}
+
+//--------------------------------------------------------------
 void Connection::vibrate(int myoID, string type){
     sendCommand(myoID, "vibrate", type);
 }
