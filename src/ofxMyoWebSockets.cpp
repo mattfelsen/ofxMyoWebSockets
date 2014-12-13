@@ -151,6 +151,7 @@ void Connection::update(){
                 armband->unlocked = false;
                 armband->pose = "rest";
                 armband->poseConfirmed = false;
+                notifyUserAction(armband, "single");
                 ofNotifyEvent(lockedEvent, *armband, this);
             }
         }
