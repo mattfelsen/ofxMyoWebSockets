@@ -10,9 +10,16 @@
 #include "ofxJSON.h"
 #include "ofxLibwebsockets.h"
 
-namespace ofxMyoWebSockets {
+namespace ofxMyo {
 
-    struct Armband {
+    class Hub;
+    class Armband;
+
+    class Armband {
+
+    public:
+
+        Hub*            hub;
 
         int             id;
         int             rssi;
@@ -25,20 +32,34 @@ namespace ofxMyoWebSockets {
         ofQuaternion    quat;
         float           roll, pitch, yaw;
 
-
         float           poseStartTime;
         bool            poseConfirmed;
-        bool            unlocked;
         float           unlockStartTime;
+
+        void    setLockedState();
+        void    setUnlockedState();
+        bool    isLocked();
+        bool    isUnlocked();
+
+        void    lock();
+        void    unlock(string type = "");
+        void    vibrate(string type = "short");             // type: short, medium, or long
+        void    notifyUserAction(string type = "single");   // type: single
+        void    requestSignalStrength();
+
+    private:
+
+        bool    unlocked;
 
     };
 
 
-    class Connection {
+    class Hub {
 
     public:
 
-        Connection();
+        Hub();
+        
         void connect(bool autoReconnect = false);
         void connect(string hostname = "localhost", int port = 10138, bool autoReconnect = false);
 
@@ -56,25 +77,6 @@ namespace ofxMyoWebSockets {
         void sendCommand(string command, string parameter);
         void sendCommand(int myoID, string command);
         void sendCommand(int myoID, string command, string type);
-        void sendCommand(Armband* armband, string command);
-        void sendCommand(Armband* armband, string command, string type);
-
-        // type: only single as per the Myo WebSocket API
-        void notifyUserAction(int myoID, string type = "single");
-        void notifyUserAction(Armband* armband, string type = "single");
-
-        // type: short, medium, or long as per the Myo WebSocket API
-        void vibrate(int myoID, string type = "short");
-        void vibrate(Armband* armband, string type = "short");
-
-        void requestSignalStrength(int myoID);
-        void requestSignalStrength(Armband* armband);
-
-		void lock(int myoID);
-		void lock(Armband* armband);
-
-		void unlock(int myoID, string type);
-		void unlock(Armband* armband, string type);
 
         vector<Armband*>    armbands;
         Armband*            getArmband(int myoID);
@@ -87,12 +89,10 @@ namespace ofxMyoWebSockets {
         ofEvent<Armband>    connectedEvent;
         ofEvent<Armband>    disconnectedEvent;
 
-        // API v1 compatibility
-        ofEvent<Armband>    armRecognizedEvent;
+        ofEvent<Armband>    armRecognizedEvent; // API v1 compatibility
         ofEvent<Armband>    armLostEvent;
 
-        // API v2
-        ofEvent<Armband>    armSyncedEvent;
+        ofEvent<Armband>    armSyncedEvent;     // API v2
         ofEvent<Armband>    armUnsyncedEvent;
 
         ofEvent<Armband>    unlockedEvent;

@@ -7,10 +7,61 @@
 
 #include "ofxMyoWebSockets.h"
 
-using namespace ofxMyoWebSockets;
+using namespace ofxMyo;
 
 //--------------------------------------------------------------
-Connection::Connection(){
+void Armband::setLockedState(){
+    unlocked = false;
+}
+
+//--------------------------------------------------------------
+void Armband::setUnlockedState(){
+    unlocked = true;
+    unlockStartTime = ofGetElapsedTimef();
+}
+
+//--------------------------------------------------------------
+bool Armband::isLocked(){
+    return !unlocked;
+}
+
+//--------------------------------------------------------------
+bool Armband::isUnlocked(){
+    return unlocked;
+}
+
+//--------------------------------------------------------------
+void Armband::lock(){
+//    hub->sendCommand(id, "lock");
+    setLockedState();
+}
+
+//--------------------------------------------------------------
+void Armband::unlock(string type){
+
+    if (type != "")
+        hub->sendCommand(id, "unlock", type);
+
+    setUnlockedState();
+}
+
+//--------------------------------------------------------------
+void Armband::vibrate(string type){
+    hub->sendCommand(id, "vibrate", type);
+}
+
+//--------------------------------------------------------------
+void Armband::notifyUserAction(string type){
+    hub->sendCommand(id, "notify_user_action", type);
+}
+
+//--------------------------------------------------------------
+void Armband::requestSignalStrength(){
+    hub->sendCommand(id, "request_rssi");
+}
+
+//--------------------------------------------------------------
+Hub::Hub(){
 
     requiresUnlock = false;
     unlockTimeout = 3.0f;
@@ -23,12 +74,12 @@ Connection::Connection(){
 }
 
 //--------------------------------------------------------------
-void Connection::connect(bool autoReconnect){
+void Hub::connect(bool autoReconnect){
     connect(hostname, port, autoReconnect);
 }
 
 //--------------------------------------------------------------
-void Connection::connect(string hostname, int port, bool autoReconnect){
+void Hub::connect(string hostname, int port, bool autoReconnect){
 
     this->hostname = hostname;
     this->port = port;
@@ -48,36 +99,36 @@ void Connection::connect(string hostname, int port, bool autoReconnect){
 }
 
 //--------------------------------------------------------------
-void Connection::setLockingPolicy(string type){
+void Hub::setLockingPolicy(string type){
     sendCommand("set_locking_policy", type);
 }
 
 //--------------------------------------------------------------
-void Connection::setRequiresUnlock(bool require){
+void Hub::setRequiresUnlock(bool require){
     requiresUnlock = require;
 }
 
 //--------------------------------------------------------------
-void Connection::setUnlockTimeout(float time){
+void Hub::setUnlockTimeout(float time){
     unlockTimeout = time;
 }
 
 //--------------------------------------------------------------
-void Connection::setMinimumGestureDuration(float time){
+void Hub::setMinimumGestureDuration(float time){
     minimumGestureDuration = time;
 }
 
 //--------------------------------------------------------------
-void Connection::setLockAfterPose(bool lock){
+void Hub::setLockAfterPose(bool lock){
     lockAfterPose = lock;
 }
 
-void Connection::setUseDegrees(bool degrees){
+void Hub::setUseDegrees(bool degrees){
     convertToDegrees = degrees;
 }
 
 //--------------------------------------------------------------
-void Connection::update(){
+void Hub::update(){
 
     // Check if we need to reconnect
     if (!connected && reconnect) {
@@ -96,7 +147,7 @@ void Connection::update(){
         // Compare against the minimum hold time for hand poses
         if (ofGetElapsedTimef() - armband->poseStartTime > minimumGestureDuration) {
 
-            if ((requiresUnlock && armband->unlocked) || !requiresUnlock) {
+            if (armband->isUnlocked()) {
                 armband->poseConfirmed = true;
                 ofNotifyEvent(poseConfirmedEvent, *armband, this);
             }
@@ -104,20 +155,19 @@ void Connection::update(){
             // unlock gesture
             if (armband->pose == "thumb_to_pinky" || armband->pose == "double_tap") {
 
-                if (!armband->unlocked) {
-                    vibrate(armband, "short");
-                    notifyUserAction(armband, "single");
+                if (armband->isLocked()) {
+                    armband->vibrate("short");
+                    armband->notifyUserAction("single");
                     ofNotifyEvent(unlockedEvent, *armband, this);
                 }
 
-                armband->unlocked = true;
-                armband->unlockStartTime = ofGetElapsedTimef();
+                armband->setUnlockedState();
 
             } else {
 
                 // re-lock after a confirmed pose
-                if (lockAfterPose && armband->unlocked && armband->pose != "thumb_to_pinky" && armband->pose != "double_tap") {
-                    armband->unlocked = false;
+                if (lockAfterPose && armband->isUnlocked() && armband->pose != "thumb_to_pinky" && armband->pose != "double_tap") {
+                    armband->setLockedState();
                     armband->pose = "rest";
                     armband->poseConfirmed = false;
                     ofNotifyEvent(lockedEvent, *armband, this);
@@ -129,7 +179,7 @@ void Connection::update(){
         // I.e. hold a fist for half a second to get it confirmed, but immediately
         // go back to rest when you're done
         if (armband->pose == "rest") {
-            if ((requiresUnlock && armband->unlocked) || !requiresUnlock) {
+            if (armband->isUnlocked()) {
                 armband->poseConfirmed = true;
                 ofNotifyEvent(poseConfirmedEvent, *armband, this);
             }
@@ -142,16 +192,16 @@ void Connection::update(){
         Armband* armband = armbands[i];
 
         if (!requiresUnlock)
-            armband->unlocked = true;
+            armband->setUnlockedState();
 
         else {
-            if (!armband->unlocked) continue;
+            if (armband->isLocked()) continue;
 
             if (ofGetElapsedTimef() - armband->unlockStartTime > unlockTimeout) {
-                armband->unlocked = false;
+                armband->setLockedState();
                 armband->pose = "rest";
                 armband->poseConfirmed = false;
-                notifyUserAction(armband, "single");
+                armband->notifyUserAction("single");
                 ofNotifyEvent(lockedEvent, *armband, this);
             }
         }
@@ -160,7 +210,7 @@ void Connection::update(){
 }
 
 //--------------------------------------------------------------
-Armband* Connection::getArmband(int myoID){
+Armband* Hub::getArmband(int myoID){
 
     for (int i = 0; i < armbands.size(); i++) {
         if (armbands[i]->id == myoID) {
@@ -174,9 +224,11 @@ Armband* Connection::getArmband(int myoID){
 }
 
 //--------------------------------------------------------------
-Armband* Connection::createArmband(int myoID){
+Armband* Hub::createArmband(int myoID){
 
     Armband *armband = new Armband();
+
+    armband->hub = this;
 
     armband->id = myoID;
     armband->rssi = -999;
@@ -193,8 +245,9 @@ Armband* Connection::createArmband(int myoID){
 
     armband->poseStartTime = 0;
     armband->poseConfirmed = false;
-    armband->unlocked = !requiresUnlock;
     armband->unlockStartTime = 0;
+
+    requiresUnlock ? armband->setLockedState() : armband->setUnlockedState();
 
     armbands.push_back(armband);
 
@@ -203,22 +256,22 @@ Armband* Connection::createArmband(int myoID){
 }
 
 //--------------------------------------------------------------
-int Connection::numConnectedArmbands(){
+int Hub::numConnectedArmbands(){
     return armbands.size();
 }
 
 //--------------------------------------------------------------
-void Connection::sendCommand(string command, string type){
+void Hub::sendCommand(string command, string type){
     sendCommand(-1, command, type);
 }
 
 //--------------------------------------------------------------
-void Connection::sendCommand(int myoID, string command){
+void Hub::sendCommand(int myoID, string command){
     sendCommand(myoID, command, "");
 }
 
 //--------------------------------------------------------------
-void Connection::sendCommand(int myoID, string commandString, string type){
+void Hub::sendCommand(int myoID, string commandString, string type){
 
     // build the json message
     ofxJSONElement message;
@@ -236,70 +289,12 @@ void Connection::sendCommand(int myoID, string commandString, string type){
     // send it off
     client.send(message.getRawString());
 
+    ofLogNotice() << "sendCommand(): " << myoID << ", " << commandString << ", " << type;
+
 }
 
 //--------------------------------------------------------------
-void Connection::sendCommand(Armband* armband, string command){
-    sendCommand(armband, command, "");
-}
-
-//--------------------------------------------------------------
-void Connection::sendCommand(Armband* armband, string command, string type){
-    sendCommand(armband->id, command, type);
-}
-
-//--------------------------------------------------------------
-void Connection::notifyUserAction(int myoID, string type){
-    sendCommand(myoID, "notify_user_action", type);
-}
-
-//--------------------------------------------------------------
-void Connection::notifyUserAction(Armband* armband, string type){
-    sendCommand(armband->id, "notify_user_action", type);
-}
-
-//--------------------------------------------------------------
-void Connection::vibrate(int myoID, string type){
-    sendCommand(myoID, "vibrate", type);
-}
-
-//--------------------------------------------------------------
-void Connection::vibrate(Armband* armband, string type){
-    sendCommand(armband->id, "vibrate", type);
-}
-
-//--------------------------------------------------------------
-void Connection::requestSignalStrength(int myoID){
-    sendCommand(myoID, "request_rssi");
-}
-
-//--------------------------------------------------------------
-void Connection::requestSignalStrength(Armband* armband	){
-    sendCommand(armband->id, "request_rssi");
-}
-
-//--------------------------------------------------------------
-void Connection::lock(int myoID){
-    sendCommand(myoID, "lock");
-}
-
-//--------------------------------------------------------------
-void Connection::lock(Armband* armband){
-    sendCommand(armband->id, "lock");
-}
-
-//--------------------------------------------------------------
-void Connection::unlock(int myoID, string type){
-    sendCommand(myoID, "unlock", type);
-}
-
-//--------------------------------------------------------------
-void Connection::unlock(Armband* armband, string type){
-    sendCommand(armband->id, "unlock", type);
-}
-
-//--------------------------------------------------------------
-void Connection::onMessage( ofxLibwebsockets::Event& args ){
+void Hub::onMessage( ofxLibwebsockets::Event& args ){
 
     try {
 
@@ -338,7 +333,7 @@ void Connection::onMessage( ofxLibwebsockets::Event& args ){
         // CONNECTED
         //
         if (event == "connected") {
-            requestSignalStrength(armband);
+            armband->requestSignalStrength();
             ofNotifyEvent(connectedEvent, *armband, this);
         }
 
@@ -462,8 +457,8 @@ void Connection::onMessage( ofxLibwebsockets::Event& args ){
         //
         if (event == "unlocked") {
 
-            armband->unlocked = true;
-            armband->unlockStartTime = ofGetElapsedTimef();
+            armband->setUnlockedState();
+
             ofNotifyEvent(unlockedEvent, *armband, this);
 
         }
@@ -473,8 +468,9 @@ void Connection::onMessage( ofxLibwebsockets::Event& args ){
         //
         if (event == "locked") {
 
-            armband->unlocked = false;
+            armband->setLockedState();
             armband->pose = "rest";
+
             ofNotifyEvent(lockedEvent, *armband, this);
 
         }
@@ -494,11 +490,10 @@ void Connection::onMessage( ofxLibwebsockets::Event& args ){
 
             if (armband->pose == "double_tap") {
 
-                vibrate(armband, "short");
-                notifyUserAction(armband, "single");
+                armband->vibrate("short");
+                armband->notifyUserAction("single");
 
-                armband->unlocked = true;
-                armband->unlockStartTime = ofGetElapsedTimef();
+                armband->setUnlockedState();
 
                 ofNotifyEvent(unlockedEvent, *armband, this);
 
@@ -522,18 +517,18 @@ void Connection::onMessage( ofxLibwebsockets::Event& args ){
 }
 
 //--------------------------------------------------------------
-void Connection::onConnect( ofxLibwebsockets::Event& args ){
+void Hub::onConnect( ofxLibwebsockets::Event& args ){
     ofLogNotice("Socket Connected");
 }
 
 //--------------------------------------------------------------
-void Connection::onOpen( ofxLibwebsockets::Event& args ){
+void Hub::onOpen( ofxLibwebsockets::Event& args ){
     connected = true;
     ofLogNotice("Socket Open");
 }
 
 //--------------------------------------------------------------
-void Connection::onClose( ofxLibwebsockets::Event& args ){
+void Hub::onClose( ofxLibwebsockets::Event& args ){
     armbands.clear();
     connected = false;
     reconnectLastAttempt = ofGetElapsedTimef();
@@ -541,11 +536,11 @@ void Connection::onClose( ofxLibwebsockets::Event& args ){
 }
 
 //--------------------------------------------------------------
-void Connection::onIdle( ofxLibwebsockets::Event& args ){
+void Hub::onIdle( ofxLibwebsockets::Event& args ){
     ofLogVerbose("Socket Idle");
 }
 
 //--------------------------------------------------------------
-void Connection::onBroadcast( ofxLibwebsockets::Event& args ){
+void Hub::onBroadcast( ofxLibwebsockets::Event& args ){
     ofLogVerbose("Socket Broadcast");
 }
