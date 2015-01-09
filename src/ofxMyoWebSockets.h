@@ -48,6 +48,9 @@ namespace ofxMyo {
         void    requestSignalStrength();
 
         void    resetCoordinateSystem();
+        bool    rollIsNear(float degrees, float threshold);
+        bool    pitchIsNear(float degrees, float threshold);
+        bool    yawIsNear(float degrees, float threshold);
 
     private:
 

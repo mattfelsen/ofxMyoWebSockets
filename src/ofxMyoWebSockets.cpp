@@ -66,6 +66,36 @@ void Armband::resetCoordinateSystem(){
 }
 
 //--------------------------------------------------------------
+bool Armband::rollIsNear(float degrees, float threshold){
+
+    if ( (roll >= degrees - threshold) && (roll <= degrees + threshold) )
+        return true;
+    else
+        return false;
+
+}
+
+//--------------------------------------------------------------
+bool Armband::pitchIsNear(float degrees, float threshold){
+
+    if ( (pitch >= degrees - threshold) && (pitch <= degrees + threshold) )
+        return true;
+    else
+        return false;
+
+}
+
+//--------------------------------------------------------------
+bool Armband::yawIsNear(float degrees, float threshold){
+
+    if ( (yaw >= degrees - threshold) && (yaw <= degrees + threshold) )
+        return true;
+    else
+        return false;
+
+}
+
+//--------------------------------------------------------------
 Hub::Hub(){
 
     requiresUnlock = false;
