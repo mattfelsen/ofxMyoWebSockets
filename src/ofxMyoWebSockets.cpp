@@ -61,6 +61,11 @@ void Armband::requestSignalStrength(){
 }
 
 //--------------------------------------------------------------
+void Armband::resetCoordinateSystem(){
+    quatOffset = quatRaw.inverse();
+}
+
+//--------------------------------------------------------------
 Hub::Hub(){
 
     requiresUnlock = false;

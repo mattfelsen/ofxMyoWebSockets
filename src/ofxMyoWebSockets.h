@@ -47,6 +47,8 @@ namespace ofxMyo {
         void    notifyUserAction(string type = "single");   // type: single
         void    requestSignalStrength();
 
+        void    resetCoordinateSystem();
+
     private:
 
         bool    unlocked;
