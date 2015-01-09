@@ -29,7 +29,7 @@ namespace ofxMyo {
         string          pose, lastPose;
 
         ofVec3f         accel, gyro;
-        ofQuaternion    quat;
+        ofQuaternion    quat, quatRaw, quatOffset;
         float           roll, pitch, yaw;
 
         float           poseStartTime;

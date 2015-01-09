@@ -239,6 +239,8 @@ Armband* Hub::createArmband(int myoID){
     armband->lastPose = "unknown";
 
     armband->quat = ofQuaternion(0, 0, 0, 1);
+    armband->quatRaw = ofQuaternion(0, 0, 0, 1);
+    armband->quatOffset = ofQuaternion(0, 0, 0, 1);
     armband->roll = 0;
     armband->pitch = 0;
     armband->yaw = 0;
@@ -424,12 +426,20 @@ void Hub::onMessage( ofxLibwebsockets::Event& args ){
             float w = quat["w"].asFloat();
 
             armband->quat.set(x, y, z, w);
+            armband->quatRaw.set(x, y, z, w);
+
+            armband->quat *= armband->quatOffset;
+
+            x = armband->quat.x();
+            y = armband->quat.y();
+            z = armband->quat.z();
+            w = armband->quat.w();
 
             // calculate roll, pitch, and yaw value
             armband->roll = atan2(2.0f * (w * x + y * z), 1.0f - 2.0f * (x * x + y * y));
             armband->pitch = asin(2.0f * (w * y - z * x));
             armband->yaw = atan2(2.0f * (w * z + x * y), 1.0f - 2.0f * (y * y + z * z));
-            
+
             // convert to degrees if the setting is on
             if (convertToDegrees) {
                 armband->roll = ofRadToDeg(armband->roll);
