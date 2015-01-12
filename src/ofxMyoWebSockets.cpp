@@ -62,7 +62,7 @@ void Armband::requestSignalStrength(){
 
 //--------------------------------------------------------------
 void Armband::resetCoordinateSystem(){
-    quatOffset = quatRaw.inverse();
+    quatOffset = ofQuaternion(-yawRaw, ofVec3f(0, 0, 1) );
 }
 
 //--------------------------------------------------------------
