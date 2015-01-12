@@ -31,6 +31,7 @@ namespace ofxMyo {
         ofVec3f         accel, gyro;
         ofQuaternion    quat, quatRaw, quatOffset;
         float           roll, pitch, yaw;
+        float           rollRaw, pitchRaw, yawRaw;
 
         float           poseStartTime;
         bool            poseConfirmed;

@@ -463,6 +463,13 @@ void Hub::onMessage( ofxLibwebsockets::Event& args ){
             armband->quat.set(x, y, z, w);
             armband->quatRaw.set(x, y, z, w);
 
+            // calculate roll, pitch, and yaw value and store in raw versions
+            // before offsetting the quaternion for the current coordinate system
+            armband->rollRaw = atan2(2.0f * (w * x + y * z), 1.0f - 2.0f * (x * x + y * y));
+            armband->pitchRaw = asin(2.0f * (w * y - z * x));
+            armband->yawRaw = atan2(2.0f * (w * z + x * y), 1.0f - 2.0f * (y * y + z * z));
+
+            // apply the offset to reset the coordinate system/zero out yaw
             armband->quat *= armband->quatOffset;
 
             x = armband->quat.x();
@@ -470,7 +477,7 @@ void Hub::onMessage( ofxLibwebsockets::Event& args ){
             z = armband->quat.z();
             w = armband->quat.w();
 
-            // calculate roll, pitch, and yaw value
+            // now re-calculate roll, pitch, and yaw values after quat has been offset
             armband->roll = atan2(2.0f * (w * x + y * z), 1.0f - 2.0f * (x * x + y * y));
             armband->pitch = asin(2.0f * (w * y - z * x));
             armband->yaw = atan2(2.0f * (w * z + x * y), 1.0f - 2.0f * (y * y + z * z));
@@ -480,19 +487,27 @@ void Hub::onMessage( ofxLibwebsockets::Event& args ){
                 armband->roll = ofRadToDeg(armband->roll);
                 armband->pitch = ofRadToDeg(armband->pitch);
                 armband->yaw = ofRadToDeg(armband->yaw);
+
+                armband->rollRaw = ofRadToDeg(armband->rollRaw);
+                armband->pitchRaw = ofRadToDeg(armband->pitchRaw);
+                armband->yawRaw = ofRadToDeg(armband->yawRaw);
             }
             
             // flip pitch so that...
             // - up is positive
             // - down is negative
-            if (armband->direction == "toward_wrist")
+            if (armband->direction == "toward_wrist") {
                 armband->pitch *= -1;
+                armband->pitchRaw *= -1;
+            }
             
             // flip roll so that...
             // - rolling right is positive roll
             // - rolling left is negative
-            if (armband->direction == "toward_elbow")
+            if (armband->direction == "toward_elbow") {
                 armband->roll *= -1;
+                armband->rollRaw *= -1;
+            }
             
             ofNotifyEvent(orientationEvent, *armband, this);
         }
