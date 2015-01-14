@@ -74,6 +74,7 @@ namespace ofxMyo {
         void setUnlockTimeout(float time = 3.0f);
         void setMinimumGestureDuration(float time = 0.0f);
         void setLockAfterPose(bool lock = true);
+        void setUseDoubleTapUnlock(bool lock = true);
         void setUseDegrees(bool degrees = true);
 
         float getMinimumGestureDuration() { return minimumGestureDuration; }
@@ -135,6 +136,7 @@ namespace ofxMyo {
         float   unlockTimeout;
         float   minimumGestureDuration;
         bool    lockAfterPose;
+        bool    useDoubleTapUnlock;
         
         bool    convertToDegrees;
         

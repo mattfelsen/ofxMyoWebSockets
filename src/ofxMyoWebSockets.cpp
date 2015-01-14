@@ -158,6 +158,12 @@ void Hub::setLockAfterPose(bool lock){
     lockAfterPose = lock;
 }
 
+//--------------------------------------------------------------
+void Hub::setUseDoubleTapUnlock(bool lock){
+    useDoubleTapUnlock = lock;
+}
+
+//--------------------------------------------------------------
 void Hub::setUseDegrees(bool degrees){
     convertToDegrees = degrees;
 }
@@ -548,7 +554,7 @@ void Hub::onMessage( ofxLibwebsockets::Event& args ){
 
             ofNotifyEvent(poseStartedEvent, *armband, this);
 
-            if (armband->pose == "double_tap") {
+            if (armband->pose == "double_tap" && useDoubleTapUnlock) {
 
                 armband->vibrate("short");
                 armband->notifyUserAction("single");
