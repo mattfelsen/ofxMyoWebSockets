@@ -110,7 +110,7 @@ Hub::Hub(){
 
 //--------------------------------------------------------------
 void Hub::connect(bool autoReconnect){
-    connect(hostname, port, autoReconnect);
+    if (!connected) connect(hostname, port, autoReconnect);
 }
 
 //--------------------------------------------------------------
