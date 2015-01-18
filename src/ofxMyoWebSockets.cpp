@@ -12,12 +12,14 @@ using namespace ofxMyo;
 //--------------------------------------------------------------
 void Armband::setLockedState(){
     unlocked = false;
+    ofNotifyEvent(hub->lockedEvent, *this);
 }
 
 //--------------------------------------------------------------
 void Armband::setUnlockedState(){
     unlocked = true;
     unlockStartTime = ofGetElapsedTimef();
+    ofNotifyEvent(hub->unlockedEvent, *this);
 }
 
 //--------------------------------------------------------------
@@ -199,7 +201,6 @@ void Hub::update(){
                 if (armband->isLocked()) {
                     armband->vibrate("short");
                     armband->notifyUserAction("single");
-                    ofNotifyEvent(unlockedEvent, *armband, this);
                 }
 
                 armband->setUnlockedState();
@@ -211,7 +212,6 @@ void Hub::update(){
                     armband->setLockedState();
                     armband->pose = "rest";
                     armband->poseConfirmed = false;
-                    ofNotifyEvent(lockedEvent, *armband, this);
                 }
             }
         }
@@ -232,7 +232,7 @@ void Hub::update(){
 
         Armband* armband = armbands[i];
 
-        if (!requiresUnlock)
+        if (!requiresUnlock && armband->isLocked())
             armband->setUnlockedState();
 
         else {
@@ -243,7 +243,6 @@ void Hub::update(){
                 armband->pose = "rest";
                 armband->poseConfirmed = false;
                 armband->notifyUserAction("single");
-                ofNotifyEvent(lockedEvent, *armband, this);
             }
         }
     }
@@ -525,8 +524,6 @@ void Hub::onMessage( ofxLibwebsockets::Event& args ){
 
             armband->setUnlockedState();
 
-            ofNotifyEvent(unlockedEvent, *armband, this);
-
         }
 
         //
@@ -536,8 +533,6 @@ void Hub::onMessage( ofxLibwebsockets::Event& args ){
 
             armband->setLockedState();
             armband->pose = "rest";
-
-            ofNotifyEvent(lockedEvent, *armband, this);
 
         }
 
@@ -558,10 +553,7 @@ void Hub::onMessage( ofxLibwebsockets::Event& args ){
 
                 armband->vibrate("short");
                 armband->notifyUserAction("single");
-
                 armband->setUnlockedState();
-
-                ofNotifyEvent(unlockedEvent, *armband, this);
 
             }
 
