@@ -19,6 +19,7 @@ void Armband::setLockedState(){
 void Armband::setUnlockedState(){
     unlocked = true;
     unlockStartTime = ofGetElapsedTimef();
+    poseStartTime = ofGetElapsedTimef();
     ofNotifyEvent(hub->unlockedEvent, *this);
 }
 
@@ -210,7 +211,7 @@ void Hub::update(){
                 // re-lock after a confirmed pose
                 if (lockAfterPose && armband->isUnlocked() && armband->pose != "thumb_to_pinky" && armband->pose != "double_tap") {
                     armband->setLockedState();
-                    armband->pose = "rest";
+//                    armband->pose = "rest";
                     armband->poseConfirmed = false;
                 }
             }
@@ -240,7 +241,7 @@ void Hub::update(){
 
             if (ofGetElapsedTimef() - armband->unlockStartTime > unlockTimeout) {
                 armband->setLockedState();
-                armband->pose = "rest";
+//                armband->pose = "rest";
                 armband->poseConfirmed = false;
                 armband->notifyUserAction("single");
             }
@@ -532,7 +533,7 @@ void Hub::onMessage( ofxLibwebsockets::Event& args ){
         if (event == "locked") {
 
             armband->setLockedState();
-            armband->pose = "rest";
+//            armband->pose = "rest";
 
         }
 
