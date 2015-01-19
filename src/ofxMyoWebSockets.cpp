@@ -236,7 +236,7 @@ void Hub::update(){
         if (!requiresUnlock && armband->isLocked())
             armband->setUnlockedState();
 
-        else {
+        else if (requiresUnlock) {
             if (armband->isLocked()) continue;
 
             if (ofGetElapsedTimef() - armband->unlockStartTime > unlockTimeout) {
