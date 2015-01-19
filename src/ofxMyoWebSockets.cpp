@@ -267,6 +267,8 @@ Armband* Hub::getArmband(int myoID){
 //--------------------------------------------------------------
 Armband* Hub::createArmband(int myoID){
 
+    ofLogNotice() << "ofxMyo::Armband Creating ID: " << myoID;
+
     Armband *armband = new Armband();
 
     armband->hub = this;
