@@ -155,6 +155,8 @@ void Hub::connect(bool autoReconnect){
 //--------------------------------------------------------------
 void Hub::connect(string hostname, int port, bool autoReconnect){
 
+    if (connected) client.close();
+
     this->hostname = hostname;
     this->port = port;
 
