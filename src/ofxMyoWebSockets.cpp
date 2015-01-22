@@ -1,4 +1,4 @@
-//--------------------------------------------------------------//
+//
 //  ofxMyoWebSockets
 //
 //  Created by Matt Felsen on 10/21/14.
@@ -65,7 +65,42 @@ void Armband::requestSignalStrength(){
 
 //--------------------------------------------------------------
 void Armband::resetCoordinateSystem(){
-    quatOffset = ofQuaternion(-yawRaw, ofVec3f(0, 0, 1) );
+    quatOffset.makeRotate(-yawRaw, 0, 0, 1);
+
+    // apply the offset to reset the coordinate system/zero out yaw
+    quat = quatRaw;
+    quat *= quatOffset;
+
+    float x = quat.x();
+    float y = quat.y();
+    float z = quat.z();
+    float w = quat.w();
+
+    // now re-calculate roll, pitch, and yaw values after quat has been offset
+    roll = atan2(2.0f * (w * x + y * z), 1.0f - 2.0f * (x * x + y * y));
+    pitch = asin(2.0f * (w * y - z * x));
+    yaw = atan2(2.0f * (w * z + x * y), 1.0f - 2.0f * (y * y + z * z));
+
+    // convert to degrees if the setting is on
+    if (hub->getUsingDegrees()) {
+        roll = ofRadToDeg(roll);
+        pitch = ofRadToDeg(pitch);
+        yaw = ofRadToDeg(yaw);
+    }
+
+    // flip pitch so that...
+    // - up is positive
+    // - down is negative
+    if (direction == "toward_wrist") {
+        pitch *= -1;
+    }
+
+    // flip roll so that...
+    // - rolling right is positive roll
+    // - rolling left is negative
+    if (direction == "toward_elbow") {
+        roll *= -1;
+    }
 }
 
 //--------------------------------------------------------------
@@ -101,6 +136,7 @@ bool Armband::yawIsNear(float degrees, float threshold){
 //--------------------------------------------------------------
 Hub::Hub(){
 
+    useBuiltInUnlocking = true;
     requiresUnlock = false;
     unlockTimeout = 3.0f;
 
@@ -138,6 +174,10 @@ void Hub::connect(string hostname, int port, bool autoReconnect){
 
 //--------------------------------------------------------------
 void Hub::setLockingPolicy(string type){
+
+    if (type == "none")
+        useBuiltInUnlocking = false;
+
     sendCommand("set_locking_policy", type);
 }
 
@@ -525,7 +565,8 @@ void Hub::onMessage( ofxLibwebsockets::Event& args ){
         //
         if (event == "unlocked") {
 
-            armband->setUnlockedState();
+            if (useBuiltInUnlocking)
+                armband->setUnlockedState();
 
         }
 
@@ -534,8 +575,8 @@ void Hub::onMessage( ofxLibwebsockets::Event& args ){
         //
         if (event == "locked") {
 
-            armband->setLockedState();
-//            armband->pose = "rest";
+            if (useBuiltInUnlocking)
+                armband->setLockedState();
 
         }
 

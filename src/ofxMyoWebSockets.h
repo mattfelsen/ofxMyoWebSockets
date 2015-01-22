@@ -78,6 +78,7 @@ namespace ofxMyo {
         void setUseDegrees(bool degrees = true);
 
         float getMinimumGestureDuration() { return minimumGestureDuration; }
+        bool  getUsingDegrees() { return convertToDegrees; }
 
         void update();
 
@@ -131,7 +132,8 @@ namespace ofxMyo {
 
         string  hostname;
         int     port;
-        
+
+        bool    useBuiltInUnlocking;
         bool    requiresUnlock;
         float   unlockTimeout;
         float   minimumGestureDuration;
