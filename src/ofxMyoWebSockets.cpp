@@ -149,13 +149,13 @@ Hub::Hub(){
 
 //--------------------------------------------------------------
 void Hub::connect(bool autoReconnect){
-    if (!connected) connect(hostname, port, autoReconnect);
+    connect(hostname, port, autoReconnect);
 }
 
 //--------------------------------------------------------------
 void Hub::connect(string hostname, int port, bool autoReconnect){
 
-    if (connected) client.close();
+    client.close();
 
     this->hostname = hostname;
     this->port = port;
