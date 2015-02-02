@@ -348,6 +348,11 @@ int Hub::numConnectedArmbands(){
 }
 
 //--------------------------------------------------------------
+void Hub::sendCommand(string command){
+    sendCommand(-1, command, "");
+}
+
+//--------------------------------------------------------------
 void Hub::sendCommand(string command, string type){
     sendCommand(-1, command, type);
 }
@@ -366,10 +371,12 @@ void Hub::sendCommand(int myoID, string commandString, string type){
 
     ofxJSONElement command;
     command["command"] = commandString;
-    command["type"] = type;
 
     if (myoID != -1)
         command["myo"] = myoID;
+
+    if (type != "")
+        command["type"] = type;
 
     message[1] = command;
 

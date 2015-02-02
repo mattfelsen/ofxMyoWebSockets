@@ -82,6 +82,7 @@ namespace ofxMyo {
 
         void update();
 
+        void sendCommand(string command);
         void sendCommand(string command, string parameter);
         void sendCommand(int myoID, string command);
         void sendCommand(int myoID, string command, string type);
