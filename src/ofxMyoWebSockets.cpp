@@ -317,6 +317,8 @@ Armband* Hub::createArmband(int myoID){
 
     armband->id = myoID;
     armband->rssi = -999;
+    armband->isPaired = false;
+    armband->isConnected = false;
 
     armband->arm = "unknown";
     armband->direction = "unknown";
@@ -405,6 +407,7 @@ void Hub::onMessage( ofxLibwebsockets::Event& args ){
         // PAIRED
         //
         if (event == "paired") {
+            armband->isPaired = true;
             ofNotifyEvent(pairedEvent, *armband, this);
         }
 
@@ -412,14 +415,7 @@ void Hub::onMessage( ofxLibwebsockets::Event& args ){
         // UNPAIRED
         //
         if (event == "unpaired") {
-
-            for (int i = 0; i < armbands.size(); i++) {
-                if (armbands[i]->id == id) {
-                    armbands.erase(armbands.begin() + i);
-                    break;
-                }
-            }
-
+            armband->isPaired = false;
             ofNotifyEvent(unpairedEvent, *armband, this);
         }
 
@@ -427,7 +423,10 @@ void Hub::onMessage( ofxLibwebsockets::Event& args ){
         // CONNECTED
         //
         if (event == "connected") {
+
+            armband->isConnected = true;
             armband->requestSignalStrength();
+
             ofNotifyEvent(connectedEvent, *armband, this);
         }
 
@@ -435,14 +434,7 @@ void Hub::onMessage( ofxLibwebsockets::Event& args ){
         // DISCONNECTED
         //
         if (event == "disconnected") {
-
-            for (int i = 0; i < armbands.size(); i++) {
-                if (armbands[i]->id == id) {
-                    armbands.erase(armbands.begin() + i);
-                    break;
-                }
-            }
-
+            armband->isConnected = false;
             ofNotifyEvent(disconnectedEvent, *armband, this);
         }
 

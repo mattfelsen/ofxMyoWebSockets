@@ -23,6 +23,8 @@ namespace ofxMyo {
 
         int             id;
         int             rssi;
+        bool            isPaired;
+        bool            isConnected;
 
         string          arm;
         string          direction;
