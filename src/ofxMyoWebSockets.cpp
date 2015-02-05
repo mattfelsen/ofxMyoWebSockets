@@ -275,6 +275,8 @@ void Hub::update(){
 
         Armband* armband = armbands[i];
 
+        if (!armband->isConnected) continue;
+
         if (!requiresUnlock && armband->isLocked())
             armband->setUnlockedState();
 
@@ -346,7 +348,15 @@ Armband* Hub::createArmband(int myoID){
 
 //--------------------------------------------------------------
 int Hub::numConnectedArmbands(){
-    return armbands.size();
+
+    int num = 0;
+    for (auto myo : armbands) {
+        if (myo->isConnected)
+            num++;
+    }
+
+    return num;
+
 }
 
 //--------------------------------------------------------------
