@@ -124,17 +124,17 @@ namespace ofxMyo {
         void onMessage( ofxLibwebsockets::Event& args );
         void onBroadcast( ofxLibwebsockets::Event& args );
         
-        ofxLibwebsockets::Client    client;
-        
+        ofxLibwebsockets::Client client;
+
+        string  hostname;
+        int     port;
+
     private:
         
         bool    connected;
         bool    reconnect;
         float   reconnectTime;
         float   reconnectLastAttempt;
-
-        string  hostname;
-        int     port;
 
         bool    useBuiltInUnlocking;
         bool    requiresUnlock;
