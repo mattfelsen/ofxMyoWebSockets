@@ -395,7 +395,8 @@ void Hub::sendCommand(int myoID, string commandString, string type){
     // send it off
     client.send(message.getRawString());
 
-    ofLogNotice() << "sendCommand(): " << myoID << ", " << commandString << ", " << type;
+    if (command != "vibrate" && command != "notify_user_action")
+        ofLogNotice("ofxMyo::sendCommand") << myoID << ", " << commandString << ", " << type;
 
 }
 
