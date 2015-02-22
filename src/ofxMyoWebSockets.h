@@ -115,6 +115,8 @@ namespace ofxMyo {
         ofEvent<Armband>    orientationEvent;
         ofEvent<Armband>    rssiReceivedEvent;
 
+        ofEvent<ofxJSONElement> acknowledgementEvent;
+
 
         // ofxLibwebsockets callbacks & such
         void onConnect( ofxLibwebsockets::Event& args );

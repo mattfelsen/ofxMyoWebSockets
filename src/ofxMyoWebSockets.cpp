@@ -405,14 +405,23 @@ void Hub::onMessage( ofxLibwebsockets::Event& args ){
 
     try {
 
+        string messageType = args.json[0].asString();
         ofxJSONElement data = args.json[1];
         if (data.isNull()) return;
 
-        int id = data["myo"].asInt();
+        int myoID = data["myo"].asInt();
         string event = data["type"].asString();
 
-        Armband *armband = getArmband(id);
-        if (!armband) armband = createArmband(id);
+        Armband *armband = getArmband(myoID);
+        if (!armband) armband = createArmband(myoID);
+
+        //
+        // COMMAND ACKNOWLEDGEMENTS
+        //
+        if (messageType == "acknowledgement") {
+            ofNotifyEvent(acknowledgementEvent, data, this);
+            return;
+        }
 
         //
         // PAIRED
@@ -618,7 +627,7 @@ void Hub::onMessage( ofxLibwebsockets::Event& args ){
         //
         // RSSI
         //
-        if (data["type"].asString() == "rssi") {
+        if (event == "rssi") {
             armband->rssi = data["rssi"].asInt();
             ofNotifyEvent(rssiReceivedEvent, *armband, this);
         }
