@@ -311,7 +311,7 @@ Armband* Hub::getArmband(int myoID){
 //--------------------------------------------------------------
 Armband* Hub::createArmband(int myoID){
 
-    ofLogNotice() << "ofxMyo::Armband Creating ID: " << myoID;
+    ofLogNotice("ofxMyo") << "Creating Armband ID: " << myoID;
 
     Armband *armband = new Armband();
 
@@ -395,8 +395,7 @@ void Hub::sendCommand(int myoID, string commandString, string type){
     // send it off
     client.send(message.getRawString());
 
-    if (command != "vibrate" && command != "notify_user_action")
-        ofLogNotice("ofxMyo::sendCommand") << myoID << ", " << commandString << ", " << type;
+    ofLogVerbose("ofxMyo") << "Hub::sendCommand: " << myoID << ", " << commandString << ", " << type;
 
 }
 
@@ -634,20 +633,20 @@ void Hub::onMessage( ofxLibwebsockets::Event& args ){
         
     }
     catch(exception& e){
-        ofLogError() << e.what();
+        ofLogError("ofxMyo") << e.what();
     }
     
 }
 
 //--------------------------------------------------------------
 void Hub::onConnect( ofxLibwebsockets::Event& args ){
-    ofLogNotice("Socket Connected");
+    ofLogNotice("ofxMyo") << "Socket Connected";
 }
 
 //--------------------------------------------------------------
 void Hub::onOpen( ofxLibwebsockets::Event& args ){
     connected = true;
-    ofLogNotice("Socket Open");
+    ofLogNotice("ofxMyo") << "Socket Open";
 }
 
 //--------------------------------------------------------------
@@ -655,15 +654,15 @@ void Hub::onClose( ofxLibwebsockets::Event& args ){
     armbands.clear();
     connected = false;
     reconnectLastAttempt = ofGetElapsedTimef();
-    ofLogNotice("Socket Closed");
+    ofLogNotice("ofxMyo") << "Socket Closed";
 }
 
 //--------------------------------------------------------------
 void Hub::onIdle( ofxLibwebsockets::Event& args ){
-    ofLogVerbose("Socket Idle");
+    ofLogNotice("ofxMyo") << "Socket Idle";
 }
 
 //--------------------------------------------------------------
 void Hub::onBroadcast( ofxLibwebsockets::Event& args ){
-    ofLogVerbose("Socket Broadcast");
+    ofLogNotice("ofxMyo") << "Socket Broadcast";
 }
