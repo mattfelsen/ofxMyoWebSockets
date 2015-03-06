@@ -22,6 +22,6 @@ public:
 	void gotMessage(ofMessage msg);
 
 	ofEasyCam cam;
-	ofxMyoWebSockets::Connection myo;
+	ofxMyo::Hub myo;
 
 };

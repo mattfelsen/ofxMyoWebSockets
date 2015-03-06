@@ -27,7 +27,7 @@ void ofApp::draw(){
 
 	for (int i = 0; i < myo.numConnectedArmbands(); i++) {
 
-		ofxMyoWebSockets::Armband* armband = myo.armbands[i];
+		ofxMyo::Armband* armband = myo.armbands[i];
 
 		cam.begin();
 		ofDrawGrid(250, 5);
@@ -46,7 +46,7 @@ void ofApp::draw(){
 		ofDrawBitmapStringHighlight("X Direction: " + armband->direction, 20, 20 * ++y);
 		ofDrawBitmapStringHighlight("Pose: " + armband->pose, 20, 20 * ++y);
 		ofDrawBitmapStringHighlight("Pose Confirmed: " + ofToString(armband->poseConfirmed), 20, 20 * ++y);
-		ofDrawBitmapStringHighlight("Unlocked: " + ofToString(armband->unlocked), 20, 20 * ++y);
+		ofDrawBitmapStringHighlight("Unlocked: " + ofToString(armband->isUnlocked()), 20, 20 * ++y);
 		
 	}
 
