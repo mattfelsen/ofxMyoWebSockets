@@ -7,7 +7,7 @@ See the included example project. In brief:
 
 	class ofApp : public ofBaseApp{
 	public:
-		ofxMyoWebSockets::Connection myo;
+		ofxMyo::Hub myo;
 	};
 
 	void ofApp::setup(){
@@ -26,7 +26,7 @@ See the included example project. In brief:
 		float angle; ofVec3f axis;
 		for (int i = 0; i < myo.numConnectedArmbands(); i++) {
 	
-			ofxMyoWebSockets::Armband* armband = myo.armbands[i];
+			ofxMyo::Armband* armband = myo.armbands[i];
 	
 			cam.begin();
 			ofDrawGrid(250, 5);
